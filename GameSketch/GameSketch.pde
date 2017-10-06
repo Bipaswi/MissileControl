@@ -2,6 +2,7 @@ PImage mouseCursor;
 PImage bg;
 
 final public static int STARTING_METEORS = 5;
+final public static int STARTING_MISSILES = 5;
 final public static int NUM_CITIES = 6;
 final public static int NUM_WAVES = 5;
 final public static int WIDTH = 800;
@@ -11,9 +12,12 @@ final public static float RESTITUTION = 1;
 final public static int GROUND = 575;
 public static int currentWave;
 public static int numParticles;
+public static int numMissiles;
 public static int score;
 public static int destroyedCities;
 public static boolean start = false;
+public static int waveTimer = 200;
+
 
 ArrayList<Meteor> meteors;
 ArrayList<City> cities;
@@ -32,18 +36,21 @@ void setup() {
   size(800, 600);
   numParticles = STARTING_METEORS;
   currentWave = 1;
+  numMissiles = STARTING_MISSILES;
   bg = loadImage("background.jpg");
   frameRate(60);
   mouseCursor = loadImage("MouseCursor.png");
   meteors = new ArrayList<Meteor>();
   cities = new ArrayList<City>();
   missiles = new ArrayList<Missile>();
+  turret = new Turret();
   //Create the ForceRegistry
   forceRegistry = new ForceRegistry();
   //Create the contact resolver and contacts AL
   //contactResolver = new ContactResolver();
   contacts = new ArrayList();
   this.meteors = createMeteors();
+  //this.missiles = createMissiles();
   cities = createCities(NUM_CITIES);
 }
 
@@ -52,7 +59,7 @@ void draw() {
   background(0);
   textSize(30);
   fill(0, 102, 153);
-  text("To start press spacebar ", 200, 300); 
+  text("Press spacebar to start", 200, 300); 
   
   if (start){
     background(bg);
@@ -61,34 +68,46 @@ void draw() {
     text("Wave: " + currentWave, 25, 25); 
     textSize(20);
     text("Score: " + score, 25, 50); 
+    textSize(20);
+    text("Missiles: " + numMissiles, 25, 75); 
   
     forceRegistry.updateForces();
     //need to remove the missile
-    for (int i=0; i<missiles.size(); i++) {
-      if (missiles.get(i).timer <= 0) {
-      //if ((missiles.get(i).start.x == missiles.get(i).xS) && (missiles.get(i).start.y == missiles.get(i).yS)) {
+    
+    //check for number of missiles, subtract each time
+      for (int i=0; i<missiles.size(); i++) {
+        if (missiles.get(i).timer <= 0) {
           missiles.remove(i);
+        }
       }
-    }
-    System.out.println(numParticles);
-    // missile explosion here
-    for (int i=0; i<missiles.size(); i++) {
-      Missile missile = (Missile) missiles.get(i);
-      missile.update();
-      missile.display();
-      for (int j =0; j < numParticles; j++){
-         detectMissileCollision(meteors.get(j), missiles.get(i));
-      }
-    }
+    
+      // missile explosion here
+      for (int i=0; i<missiles.size(); i++) {
+        Missile missile = (Missile) missiles.get(i);
+        float d = dist(missiles.get(i).position.x, missiles.get(i).position.y, missiles.get(i).start.x, missiles.get(i).start.y); 
+        if ((missiles.get(i).size > d)) {
+          missile.explode();
+           for (int j =0; j < numParticles; j++){
+           detectMissileCollision(meteors.get(j), missiles.get(i));
+            } 
+        } else{
+          missile.project();
+        }
+       }
 
     //city here, permanent through intial game
     for (int x = 0; x < cities.size(); x++){
       cities.get(x).display();
     }
+    turret.display();
 
     for (int i = 0; i < meteors.size(); i++) {
-      meteors.get(i).integrate();
+      if (meteors.get(i).position.y > 575){
+          meteors.get(i).explode();
+      }
+       meteors.get(i).integrate();
     }
+    
     detectCityCollisions();
 
     detectGameOver();
@@ -96,7 +115,7 @@ void draw() {
     fill(255, 255, 255);
     rect(0, GROUND, WIDTH, 25);
 
-    updateWave(meteors);
+    updateWave(meteors);    
     contacts.clear();
   }
 }
@@ -164,7 +183,7 @@ ArrayList<Meteor> createMeteors(){
                                 random(-.5f,.5f),
                                 random(0.001f,0.005f),
                                 (int)random(0, 600),
-                                10));
+                                20));
     forceRegistry.add(meteors.get(i), gravity);
     forceRegistry.add(meteors.get(i), drag);
   }
@@ -180,36 +199,37 @@ boolean waveFinished(ArrayList<Meteor> meteors){
        score+=5;
      }
   }
-  return true;
+    return true;
 }
 
-//wave transition needed boolean switch,
-//boolean waveOff;
+
 void updateWave(ArrayList<Meteor> meteors){
   if (waveFinished(meteors)){
-    
-    score += (NUM_CITIES - destroyedCities) * 1.5;
-    currentWave++;
-    numParticles = numParticles += 5;
-    this.meteors = createMeteors();
-    System.out.println("numParticles: " + numParticles);
-    System.out.println("currentWave:" + currentWave);
-  
+    if (waveTimer > 0){
+      background(0);
+       textSize(20);
+       text("Wave " + currentWave + " End", 300, 300); 
+       waveTimer--;
+    } else {
+      numMissiles = numMissiles += 10; 
+      score += (NUM_CITIES - destroyedCities) * 1.5;
+      currentWave++;
+      numParticles = numParticles += 5;
+      this.meteors = createMeteors();
+      waveTimer = 200;
+    }
   }
 }
 
 void mousePressed() {
-  if (mouseButton == LEFT) {
-     missiles.add(new Missile(WIDTH/2, GROUND, true, mouseX,mouseY));
-  }
-  else {
-    missiles.add(new Missile(WIDTH/2, GROUND, true, mouseX,mouseY));
+  if (mouseButton == LEFT && numMissiles > 0) {
+      missiles.add(new Missile(WIDTH/2, GROUND, true, mouseX,mouseY));
+      numMissiles--;
   }
 }
 
 void startGame(){
   start = true;
-  
 }
 
 void keyPressed() {

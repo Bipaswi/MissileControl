@@ -16,8 +16,6 @@ public final class Gravity extends ForceGenerator {
   //  and gravity is being exerted on it by something relatively
   //  massive.
   void updateForce(Meteor particle) {
-    //should check for infinite mass
-    //apply mass-scaled force to the particle
     PVector resultingForce = gravity.get();
     resultingForce.mult(particle.getMass());
     particle.addForce(resultingForce);

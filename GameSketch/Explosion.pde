@@ -9,13 +9,11 @@ public class Explosion extends ForceGenerator{
   }
    
   // Applies the drag force to the given particle
-  public void updateForce(Meteor particle) {
-    PVector force = particle.position.copy();
+  public void updateForce(Meteor meteor) {
+    PVector force = meteor.position.copy();
     force.sub(missile.position);
-    
-    //Calculate the final force and apply it
     force.normalize();
     force.mult(magnitude);
-    particle.addForce(force);
+    meteor.addForce(force);
   }
 }

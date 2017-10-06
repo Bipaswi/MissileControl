@@ -27,22 +27,7 @@ class ForceRegistry {
   void add(Meteor p, ForceGenerator fg) {
     registrations.add(new ForceRegistration(p, fg)) ; 
   }
-  
-  /**
-   * Remove the given registered pair from the registry. If the
-   * pair is not registered, this method will have no effect.
-   */
-  // This is going to be very inefficient with an AL. Suspect a
-  // Hashmap with generator as key and value as list of particles
-  // would be better.
-  
-  /**
-   * Clear all registrations from the registry
-   */
-  void clear() {
-    registrations.clear() ; 
-  }
-  
+
   /**
    * Calls all force generators to update the forces of their
    *  corresponding particles.

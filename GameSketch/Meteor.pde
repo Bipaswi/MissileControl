@@ -12,6 +12,9 @@ final class Meteor {
   private float invMass;
   
   private int timer;
+  public int explosionTimer = 60;
+  public int transparency = 255;
+  public int explosionSize = 50;
   
   private int size;
   color c;
@@ -63,5 +66,17 @@ final class Meteor {
       noStroke();
       ellipse(position.x, position.y, size, size); 
     }
+  }
+  
+  void explode(){
+   if (explosionTimer > 0){
+       explosionTimer-=5;
+       explosionSize+=4;
+       transparency-=25;
+    }
+    noStroke();
+    c = color(255, 255, 0);
+    fill(c, transparency);
+    ellipse(position.x, 575, explosionSize, explosionSize); 
   }
 }

@@ -1,7 +1,4 @@
-/**
- * A force generator that applies a drag force.
- * One instance can be used for multiple particles.
- */
+
 public final class Drag extends ForceGenerator {
   // Velocity drag coefficient
   private float k1 ;
